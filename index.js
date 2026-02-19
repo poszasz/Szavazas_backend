@@ -131,7 +131,7 @@ app.post('/belepes', async (req, res) => {
                 user = rows[0];
                 hashJelszo = user.jelszo;
             } else {
-                return res.status(402).json({ message: "Ezzel a felhasználónévvel címmel még nem regisztráltak" })
+                return res.status(402).json({ message: "Ezzel a felhasználónévvel még nem regisztráltak" })
             }
         }
         const ok = bcrypt.compare(jelszo,) //felh. vagy emailhez tartozo jelszo
@@ -220,17 +220,48 @@ app.put('/felhasznalonev', auth, async (req, res) => {
     }
 })
 
+
+app.put('/jelszo', auth, async (req, res) => {
+    const { jelenlegiJelszo, ujJelszo } = req.body
+    if (!jelenlegiJelszo || !ujJelszo) {
+        return res.status(400).json({ message: "Hiányzó bemeneti adatok" })
+    }
+    try {
+        //felhasználóhoz tartozo hashelt jelszot megkeresem
+        const sql = 'SELECT * FROM felhasznalok WHERE id=?'
+        const [rows] = await db.query(sql, [req.user.id])
+        const user = rows[0];
+        const hashJelszo = user.jelszo;
+       // a jelenlegi jelszot osszevetjuk a hashelt jelszoval
+       const ok = bcrypt.compare(jelenlegiJelszo,hashJelszo)
+       if(!ok) {
+        return res.status(401).json({message: "A régi jelszó nem helyes"})
+       } 
+       //új jelszó hashelése
+       const hashUjJelszo = await bcrypt.hash(ujJelszo, 10);
+
+       //új jelszó beállítás
+       const sql2 = 'UPDATE felhasznalok SET jelszo = ? WHERE id = ?'
+       await db.query(sql2, [hashUjJelszo,req.user.id])
+       res.status(200).json({ message: "Új jelszó megadva" })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "szerverhiba" })
+    }
+})
+
+
 app.delete('/fiokom', auth, async (req, res) => {
     try {
         //toroljuk a felhasznalot
         const sql = 'DELETE FROM felhasznalok WHERE id =?'
-        await db.query(sql,[req.user.id])
+        await db.query(sql, [req.user.id])
         //utolso lepes
         res.clearCookie(COOKIE_NAME, { path: '/' })
         res.status(200).json({ message: "Sikeres torles" })
     } catch (error) {
         console.log(error)
-        res.status(500).json({message: "szerverhiba"})
+        res.status(500).json({ message: "szerverhiba" })
     }
 })
 
