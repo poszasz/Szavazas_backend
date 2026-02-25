@@ -43,7 +43,7 @@ const app = express();
 app.use(express.json())
 app.use(cookieparser())
 app.use(cors({
-    origin: '*',
+    origin: 'http://localhost:5173',
     credentials: true
 }))
 
@@ -68,7 +68,7 @@ function auth(req, res, next) {
 app.post('/regisztracio', async (req, res) => {
     const { email, felhasznalonev, jelszo, admin } = req.body
     // bemeneti adatok ellenőrzése
-    if (!email || !felhasznalonev || !jelszo || !admin) {
+    if (!email || !felhasznalonev || !jelszo || !(admin===0 || admin===1)) {
         return res.status(400).json({ message: "Hiányos adat!" })
     }
 
