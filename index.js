@@ -104,6 +104,7 @@ app.post('/regisztracio', async (req, res) => {
 
 app.post('/belepes', async (req, res) => {
     const { felhasznalonevVagyEmail, jelszo } = req.body;
+    console.log(felhasznalonevVagyEmail, jelszo);
     if (!felhasznalonevVagyEmail || !jelszo) {
         return res.status(400).json({ message: "Hiányos belépési adatok" })
     }
@@ -134,7 +135,7 @@ app.post('/belepes', async (req, res) => {
                 return res.status(402).json({ message: "Ezzel a felhasználónévvel még nem regisztráltak" })
             }
         }
-        const ok = bcrypt.compare(jelszo,) //felh. vagy emailhez tartozo jelszo
+        const ok = bcrypt.compare(jelszo,hashJelszo) //felh. vagy emailhez tartozo jelszo
         if (!ok) {
             return res.status(403).json({ message: " rossz jelszot adtal meg" })
         }
